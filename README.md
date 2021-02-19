@@ -21,7 +21,7 @@ Your logs will automatically be formatted, with colour-coded messages and format
 If you need the plaintext log for some reason (for example, to share without the extra styling), use the `verbose=true` query parameter. For example:
 
 ```
-https://yourlogs.com/log/00000c0-1111-2222-b333-112321aabbc?verbose=true
+https://yourlogs.com/logs/00000c0-1111-2222-b333-112321aabbc?verbose=true
 ```
 
 ### Getting simple logs
