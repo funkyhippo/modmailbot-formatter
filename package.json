@@ -1,0 +1,12 @@
+{
+  "name": "modmailbot-formatter",
+  "version": "1.0.0",
+  "description": "Formatter for Dragory's Discord modmail bot.",
+  "author": "funkyhippo",
+  "license": "MIT",
+  "dependencies": {
+    "ejs": "^3.1.6",
+    "moment": "^2.29.1",
+    "showdown": "^1.9.1"
+  }
+}

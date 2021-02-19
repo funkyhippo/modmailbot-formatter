@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title><%= title %></title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css"
+    />
+    <style>
+      html {
+        word-wrap: break-word;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="section">
+      <div class="container is-max-desktop">
+        <h1 class="title"><%= title %></h1>
+        <h6 class="subtitle is-6">
+          <%= timestamp %>
+        </h6>
+        <div class="block">
+        <table class="table">
+          <tbody>
+            <% for (const [key, value] of Object.entries(metadata)) { %>
+            <tr>
+              <% if (Array.isArray(value)) { %>
+              <th><%= key %></th>
+              <td>
+                <div class="tags">
+                  <%- value.map(e => `<span class="tag is-dark">${e}</span
+                  >`).join("") %>
+                </div>
+              </td>
+              <% } else { %>
+              <th><%= key %></th>
+              <td><%= value %></td>
+              <% } %>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+    </div>
+      <% messages.forEach((message) => { %>
+        <article class="message <%= message.colour %>">
+          <div class="message-header">
+            <p><%= message.header %></p>
+          </div>
+          <div class="message-body">
+            <%- message.content.replace(/\n/g, "<br>") %>
+            <% if (message.attachments.length) { %>
+              <% message.attachments.forEach((attachment, i) => { %>
+                <br><a href="<%- attachment %>">Attachment <%= i + 1 %></a>
+              <% }); %>
+            <% } %>
+          </div>
+        </article>
+      <% }) %>
+    </section>
+  </body>
+</html>
