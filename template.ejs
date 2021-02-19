@@ -24,9 +24,16 @@
         padding-bottom: 0.5em;
         color: white;
       }
+      .message-header-compact .timestamp {
+        color: #b5b5b5;
+      }
+
       @media (prefers-color-scheme: light) {
         .message-header-compact {
           color: black;
+        }
+        .message-header-compact .timestamp {
+          color: #4a4a4a;
         }
       }
     </style>
@@ -35,7 +42,7 @@
     <section class="section">
       <div class="container is-max-desktop">
         <h1 class="title"><%= title %></h1>
-        <h6 class="subtitle is-6">
+        <h6 class="subtitle is-6 timestamp" data="<%= timestamp %>" functor="toString">
           <%= timestamp %>
         </h6>
         <div class="block">
@@ -61,9 +68,9 @@
         </table>
     </div>
       <% messages.forEach((message) => { %>
-        <article class="message compact <%= message.colour %>">
+        <article class="message compact is-hoverable <%= message.colour %>">
           <div class="message-body">
-            <p class="message-header-compact"><small><strong><%= message.header %></strong></small></p>
+            <p class="message-header-compact"><small><strong><%= message.header %></strong></small> <small><small><small><span class="timestamp" data="<%= message.timestamp %>" functor="toLocaleString"><%= message.timestamp %></span></small></small></small></p>
             <%- message.content.replace(/\n/g, "<br>") %>
             <% if (message.attachments.length) { %>
               <% message.attachments.forEach((attachment, i) => { %>
@@ -74,5 +81,10 @@
         </article>
       <% }) %>
     </section>
+    <script>
+      document.querySelectorAll(".timestamp").forEach(e => {
+        e.innerHTML = new Date(e.innerHTML.trim())[e.getAttribute("functor")]();
+      });
+    </script>
   </body>
 </html>

@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const showdown = require("showdown");
 const moment = require("moment");
+const helmet = require("helmet");
 const { THREAD_MESSAGE_TYPE } = require("./constants");
 
 const TEMPLATE_FILENAME = "template.ejs";
@@ -18,7 +19,7 @@ const COLOUR_MAPPINGS = {
   [THREAD_MESSAGE_TYPE.REPLY_DELETED]: "",
 };
 
-module.exports = function ({ formats }) {
+module.exports = function ({ formats, webserver }) {
   const plaintextFormatter = formats.formatters.formatLog;
   const converter = new showdown.Converter();
   const sanitize = (string) => {
@@ -29,6 +30,22 @@ module.exports = function ({ formats }) {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
   };
+
+  // Rewrite the previous helmet instance so it's less restrictive
+  // This is probably not recommended but we're rewriting the route stack
+  // manually, so this could break in future updates. If issues arise, look here first.
+  webserver.use(
+    helmet({
+      contentSecurityPolicy: false,
+    })
+  );
+  let helmetMiddleware = webserver._router.stack.pop();
+  let oldHelmetIndex = webserver._router.stack.findIndex(
+    (e) => e.name === helmetMiddleware.name
+  );
+  if (oldHelmetIndex !== -1) {
+    webserver._router.stack[oldHelmetIndex] = helmetMiddleware;
+  }
 
   formats.setLogFormatter((thread, threadMessages, opts = {}) => {
     try {
@@ -41,10 +58,9 @@ module.exports = function ({ formats }) {
       } else {
         const data = {
           title: `Modmail thread ${thread.thread_number} with ${thread.user_name}`,
-          timestamp: `${moment(thread.created_at).format(
-            "YYYY-MM-DD HH:mm:ss"
-          )}. All times are UTC+0`,
+          timestamp: `${moment.utc(thread.created_at).toISOString()}`,
         };
+
         const metadata = {
           "User ID": `${thread.user_id}`,
           "Account Age": null,
@@ -68,38 +84,37 @@ module.exports = function ({ formats }) {
             };
           }
           let payload = {
-            header: `[${moment
-              .utc(message.created_at)
-              .format("YYYY-MM-DD HH:mm:ss")}]`,
+            header: "",
             content: "",
             colour: COLOUR_MAPPINGS[message.message_type],
             attachments: [],
             message_type: message.message_type,
+            timestamp: `${moment.utc(message.created_at).toISOString()}`,
           };
 
           if (message.message_type === THREAD_MESSAGE_TYPE.FROM_USER) {
-            payload.header += ` [FROM USER] [${message.user_name}]`;
+            payload.header += ` [FROM USER] ${message.user_name}`;
             payload.content += message.body;
           } else if (message.message_type === THREAD_MESSAGE_TYPE.TO_USER) {
-            payload.header += ` [TO USER] [${message.user_name}]`;
+            payload.header += ` [TO USER] ${message.user_name}`;
 
             if (message.use_legacy_format) {
               // Legacy format (from pre-2.31.0) includes the role and username in the message body, so serve that as is
               payload.content += message.body;
             } else if (message.is_anonymous) {
               if (message.role_name) {
-                payload.header += ` (Anonymous) ${message.role_name}`;
+                payload.header += `: (Anonymous) ${message.role_name}`;
                 payload.content += message.body;
               } else {
-                payload.header += " (Anonymous) Moderator";
+                payload.header += ": (Anonymous) Moderator";
                 payload.content += message.body;
               }
             } else {
               if (message.role_name) {
-                payload.header += ` (${message.role_name}) ${message.user_name}`;
+                payload.header += `: (${message.role_name}) ${message.user_name}`;
                 payload.content += message.body;
               } else {
-                payload.header += ` ${message.user_name}`;
+                payload.header += `: ${message.user_name}`;
                 payload.content += message.body;
               }
             }
@@ -136,10 +151,10 @@ module.exports = function ({ formats }) {
             payload.header += " [BOT TO USER]";
             payload.content += message.body;
           } else if (message.message_type === THREAD_MESSAGE_TYPE.CHAT) {
-            payload.header += ` [CHAT] [${message.user_name}]`;
+            payload.header += ` [CHAT] ${message.user_name}`;
             payload.content += message.body;
           } else if (message.message_type === THREAD_MESSAGE_TYPE.COMMAND) {
-            payload.header += ` [COMMAND] [${message.user_name}]`;
+            payload.header += ` [COMMAND] ${message.user_name}`;
             payload.content += message.body;
           } else if (
             message.message_type === THREAD_MESSAGE_TYPE.REPLY_EDITED
