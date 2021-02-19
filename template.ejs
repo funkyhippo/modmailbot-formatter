@@ -8,9 +8,26 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css"
     />
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/bulma-prefers-dark" />
+
     <style>
       html {
         word-wrap: break-word;
+      }
+      .message.compact {
+        margin-bottom: 0.5em;
+      }
+      .message-body {
+        padding: 0.5em 0.75em;
+      }
+      .message-header-compact {
+        padding-bottom: 0.5em;
+        color: white;
+      }
+      @media (prefers-color-scheme: light) {
+        .message-header-compact {
+          color: black;
+        }
       }
     </style>
   </head>
@@ -22,7 +39,7 @@
           <%= timestamp %>
         </h6>
         <div class="block">
-        <table class="table">
+        <table class="table is-bordered is-narrow is-fullwidth is-hoverable">
           <tbody>
             <% for (const [key, value] of Object.entries(metadata)) { %>
             <tr>
@@ -30,7 +47,7 @@
               <th><%= key %></th>
               <td>
                 <div class="tags">
-                  <%- value.map(e => `<span class="tag is-info is-light">${e}</span
+                  <%- value.map(e => `<span class="tag">${e}</span
                   >`).join("") %>
                 </div>
               </td>
@@ -44,11 +61,9 @@
         </table>
     </div>
       <% messages.forEach((message) => { %>
-        <article class="message <%= message.colour %>">
-          <div class="message-header">
-            <p><%= message.header %></p>
-          </div>
+        <article class="message compact <%= message.colour %>">
           <div class="message-body">
+            <p class="message-header-compact"><small><strong><%= message.header %></strong></small></p>
             <%- message.content.replace(/\n/g, "<br>") %>
             <% if (message.attachments.length) { %>
               <% message.attachments.forEach((attachment, i) => { %>
