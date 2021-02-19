@@ -58,23 +58,13 @@ module.exports = function ({ formats }) {
         let rolesRegex = /(?:roles[\s]*)(?:\*\*)(?<roles>.+?)(?:\*\*)/gi;
 
         // Logic borrowed from https://github.com/Dragory/modmailbot/blob/ab501871ec569cc679c47bc1c82128c16864dfcf/src/formatters.js#L213-L306
-        if (opts.simple) {
-          threadMessages = threadMessages.filter((message) => {
-            return (
-              message.message_type !== THREAD_MESSAGE_TYPE.SYSTEM &&
-              message.message_type !== THREAD_MESSAGE_TYPE.SYSTEM_TO_USER &&
-              message.message_type !== THREAD_MESSAGE_TYPE.CHAT &&
-              message.message_type !== THREAD_MESSAGE_TYPE.COMMAND
-            );
-          });
-        }
-
-        const messages = threadMessages.map((message) => {
+        let messages = threadMessages.map((message) => {
           if (message.message_type === THREAD_MESSAGE_TYPE.LEGACY) {
             return {
               content: message.body,
               header: "[LEGACY]",
               colour: COLOUR_MAPPINGS[message.message_type],
+              type: message.message_type,
             };
           }
           let payload = {
@@ -84,6 +74,7 @@ module.exports = function ({ formats }) {
             content: "",
             colour: COLOUR_MAPPINGS[message.message_type],
             attachments: [],
+            message_type: message.message_type,
           };
 
           if (message.message_type === THREAD_MESSAGE_TYPE.FROM_USER) {
@@ -183,6 +174,16 @@ module.exports = function ({ formats }) {
 
           return payload;
         });
+        if (opts.simple) {
+          messages = messages.filter((message) => {
+            return (
+              message.message_type !== THREAD_MESSAGE_TYPE.SYSTEM &&
+              message.message_type !== THREAD_MESSAGE_TYPE.SYSTEM_TO_USER &&
+              message.message_type !== THREAD_MESSAGE_TYPE.CHAT &&
+              message.message_type !== THREAD_MESSAGE_TYPE.COMMAND
+            );
+          });
+        }
         data.messages = messages;
         data.metadata = {};
 
