@@ -2,6 +2,10 @@
 
 This is a formatter for the generated logs, using [ejs](https://ejs.co/) and [Bulma](https://bulma.io/) for templating and styling.
 
+## Demo
+
+[Here](https://funkyhippo.github.io/modmailbot-formatter/index.html).
+
 ## Installation
 
 In your `config.ini`, add the following line:
