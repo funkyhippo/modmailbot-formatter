@@ -4,22 +4,29 @@ const path = require("path");
 const showdown = require("showdown");
 const moment = require("moment");
 const helmet = require("helmet");
-const { THREAD_MESSAGE_TYPE } = require("./constants");
+const {
+  THREAD_MESSAGE_TYPE,
+  COLOURS,
+  THREAD_MESSAGE_TYPE_MAPPING,
+} = require("./constants");
 
 const TEMPLATE_FILENAME = "template.ejs";
+const CONFIG_KEY = "formatterPlugin";
+
+// Defaults are here
 const COLOUR_MAPPINGS = {
-  [THREAD_MESSAGE_TYPE.SYSTEM]: "is-info",
-  [THREAD_MESSAGE_TYPE.CHAT]: "is-success",
-  [THREAD_MESSAGE_TYPE.LEGACY]: "is-danger",
-  [THREAD_MESSAGE_TYPE.COMMAND]: "is-info",
-  [THREAD_MESSAGE_TYPE.FROM_USER]: "is-dark",
-  [THREAD_MESSAGE_TYPE.SYSTEM_TO_USER]: "",
-  [THREAD_MESSAGE_TYPE.TO_USER]: "",
-  [THREAD_MESSAGE_TYPE.REPLY_EDITED]: "",
-  [THREAD_MESSAGE_TYPE.REPLY_DELETED]: "",
+  [THREAD_MESSAGE_TYPE.TO_USER]: COLOURS.grey,
+  [THREAD_MESSAGE_TYPE.SYSTEM_TO_USER]: COLOURS.grey,
+  [THREAD_MESSAGE_TYPE.REPLY_EDITED]: COLOURS.grey,
+  [THREAD_MESSAGE_TYPE.REPLY_DELETED]: COLOURS.grey,
+  [THREAD_MESSAGE_TYPE.FROM_USER]: COLOURS.dark,
+  [THREAD_MESSAGE_TYPE.CHAT]: COLOURS.green,
+  [THREAD_MESSAGE_TYPE.COMMAND]: COLOURS.blue,
+  [THREAD_MESSAGE_TYPE.SYSTEM]: COLOURS.blue,
+  [THREAD_MESSAGE_TYPE.LEGACY]: COLOURS.red,
 };
 
-module.exports = function ({ formats, webserver }) {
+module.exports = function ({ formats, webserver, config }) {
   const plaintextFormatter = formats.formatters.formatLog;
   const converter = new showdown.Converter();
   const sanitize = (string) => {
@@ -30,6 +37,29 @@ module.exports = function ({ formats, webserver }) {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
   };
+
+  if (CONFIG_KEY in config) {
+    for (const [messageType, colour] of Object.entries(
+      config.formatterPlugin
+    )) {
+      let validMapping = true;
+      if (!(messageType in THREAD_MESSAGE_TYPE_MAPPING)) {
+        validMapping = false;
+        console.log(
+          `[Formatter Plugin] ${messageType} isn't a valid message type.`
+        );
+      }
+      if (!(colour in COLOURS)) {
+        validMapping = false;
+        console.log(`[Formatter Plugin] ${colour} isn't a valid colour.`);
+      }
+      if (validMapping) {
+        THREAD_MESSAGE_TYPE_MAPPING[messageType].forEach((mt) => {
+          COLOUR_MAPPINGS[mt] = COLOURS[colour];
+        });
+      }
+    }
+  }
 
   // Rewrite the previous helmet instance so it's less restrictive
   // This is probably not recommended but we're rewriting the route stack

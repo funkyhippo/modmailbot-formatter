@@ -32,6 +32,51 @@ https://yourlogs.com/logs/00000c0-1111-2222-b333-112321aabbc?verbose=true
 
 This behaviour hasn't changed. You can still use `simple=true` to get the logs with just the log between the user and responder. Note that you can also combine this with `verbose=true` (`?simple=true&verbose=true`) to get the plaintext simple log.
 
+### Changing chat colour mapping
+
+The plugin currently recognizes the following colours:
+
+- Red
+- Yellow
+- Green
+- Blue
+- Purple
+- Teal
+- Dark\*
+- Grey\*
+
+\* Dark and grey are the same in dark mode.
+
+The message types are split into 5 different categories: `toUser`, `fromUser`, `chat`, `system`, and `legacy`. The default colours are:
+
+| **Type** | **Colour** |
+| -------- | ---------- |
+| toUser   | grey       |
+| fromUser | dark       |
+| chat     | green      |
+| system   | blue       |
+| legacy   | red        |
+
+You can change the default mappings in your `config.ini` file, under the `formatterPlugin` configuration.
+
+For example, if you wanted to make all your messages green, your modmailbot's `config.ini` might look like this:
+
+```ini
+formatterPlugin.toUser = green
+formatterPlugin.fromUser = green
+formatterPlugin.chat = green
+formatterPlugin.system = green
+formatterPlugin.legacy = green
+```
+
+Or if you wanted to change your chat colours to red, you can add the following line to your config:
+
+```ini
+formatterPlugin.chat = red
+```
+
+And so on.
+
 ## Caveats
 
 In order to maintain some backward compatability, the `verbose=true` query parameter has been hijacked. If you ever use that view, **do not** use this plugin.
