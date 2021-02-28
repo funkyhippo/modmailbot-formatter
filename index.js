@@ -215,10 +215,11 @@ module.exports = function ({ formats, webserver, config }) {
           }
 
           if (message.small_attachments && message.small_attachments.length) {
-            payload.attachments = [
+            let deduplicatedSet = new Set([
               ...payload.attachments,
-              ...message.small_attachment,
-            ];
+              ...message.small_attachments,
+            ]);
+            payload.attachments = [...deduplicatedSet];
           }
 
           payload.content = sanitize(payload.content);
