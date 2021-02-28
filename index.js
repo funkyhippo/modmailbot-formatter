@@ -214,6 +214,13 @@ module.exports = function ({ formats, webserver, config }) {
             payload.attachments = message.attachments;
           }
 
+          if (message.small_attachments && message.small_attachments.length) {
+            payload.attachments = [
+              ...payload.attachments,
+              ...message.small_attachment,
+            ];
+          }
+
           payload.content = sanitize(payload.content);
           payload.content = converter.makeHtml(payload.content);
 
