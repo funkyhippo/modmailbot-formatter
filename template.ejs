@@ -46,45 +46,65 @@
           <%= timestamp %>
         </h6>
         <div class="block">
-        <table class="table is-bordered is-narrow is-fullwidth is-hoverable">
-          <tbody>
-            <% for (const [key, value] of Object.entries(metadata)) { %>
-            <tr>
-              <% if (Array.isArray(value)) { %>
-              <th><%= key %></th>
-              <td>
-                <div class="tags">
-                  <%- value.map(e => `<span class="tag">${e}</span
-                  >`).join("") %>
-                </div>
-              </td>
-              <% } else { %>
-              <th><%= key %></th>
-              <td><%= value %></td>
+          <table class="table is-bordered is-narrow is-fullwidth is-hoverable">
+            <tbody>
+              <% for (const [key, value] of Object.entries(metadata)) { %>
+              <tr>
+                <% if (Array.isArray(value)) { %>
+                <th><%= key %></th>
+                <td>
+                  <div class="tags">
+                    <%- value.map(e => `<span class="tag">${e}</span
+                    >`).join("") %>
+                  </div>
+                </td>
+                <% } else { %>
+                <th><%= key %></th>
+                <td><%= value %></td>
+                <% } %>
+              </tr>
               <% } %>
-            </tr>
-            <% } %>
-          </tbody>
-        </table>
-    </div>
-      <% messages.forEach((message) => { %>
-        <article class="message compact is-hoverable <%= message.colour %>">
-          <div class="message-body">
-            <p class="message-header-compact"><small><strong><%= message.header %></strong></small> <small><small><small><span class="timestamp" data="<%= message.timestamp %>" functor="toLocaleString"><%= message.timestamp %></span></small></small></small></p>
-            <%- message.content.replace(/\n/g, "<br>") %>
-            <% if (message.attachments.length) { %>
-              <% message.attachments.forEach((attachment, i) => { %>
-                <br><a href="<%- attachment %>">Attachment <%= i + 1 %></a>
-              <% }); %>
-            <% } %>
+            </tbody>
+          </table>
+          <div class="is-flex is-flex-direction-row is-flex-wrap-wrap">
+            <% messageTypes.forEach((messageType) => { %>
+              <div class="px-4 py-2">
+                <label class="checkbox">
+                  <input type="checkbox" checked onclick="filterMessageType(this)" data-message-type="<%= messageType %>" />
+                  <%= messageType %>
+                </label>
+              </div>
+            <% }) %>
           </div>
-        </article>
-      <% }) %>
+        </div>
+        <% messages.forEach((message) => { %>
+          <article class="message compact is-hoverable <%= message.colour %>" data-message-type="<%= message.type_mapping %>">
+            <div class="message-body">
+              <p class="message-header-compact"><small><strong><%= message.header %></strong></small> <small><small><small><span class="timestamp" data="<%= message.timestamp %>" functor="toLocaleString"><%= message.timestamp %></span></small></small></small></p>
+              <%- message.content.replace(/\n/g, "<br>") %>
+              <% if (message.attachments.length) { %>
+                <% message.attachments.forEach((attachment, i) => { %>
+                  <br><a href="<%- attachment %>">Attachment <%= i + 1 %></a>
+                <% }); %>
+              <% } %>
+            </div>
+          </article>
+        <% }) %>
+      </div>
     </section>
     <script>
       document.querySelectorAll(".timestamp").forEach(e => {
         e.innerHTML = new Date(e.innerHTML.trim())[e.getAttribute("functor")]();
       });
+    </script>
+    <script>
+      function filterMessageType(checkbox) {
+        document.querySelectorAll("article.message").forEach(e => {
+          if (e.dataset.messageType === checkbox.dataset.messageType) {
+            e.style.display = (checkbox.checked) ? "block" : "none";
+          }
+        });
+      }
     </script>
   </body>
 </html>

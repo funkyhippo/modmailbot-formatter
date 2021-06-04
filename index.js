@@ -37,6 +37,15 @@ module.exports = function ({ formats, webserver, config }) {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
   };
+  const convertCamelToTitleCase = (string) => {
+    try {
+      string = string.replace(/([A-Z])/g, " $1").trim();
+      string = string.charAt(0).toUpperCase() + string.slice(1);
+      return string;
+    } catch (e) {
+      return string;
+    }
+  };
 
   if (CONFIG_KEY in config) {
     for (const [messageType, colour] of Object.entries(
@@ -59,6 +68,18 @@ module.exports = function ({ formats, webserver, config }) {
         });
       }
     }
+  }
+
+  const messageTypeMapping = {};
+
+  for (const [humanReadableMessageType, messageTypeArray] of Object.entries(
+    THREAD_MESSAGE_TYPE_MAPPING
+  )) {
+    messageTypeArray.forEach((messageType) => {
+      messageTypeMapping[messageType] = convertCamelToTitleCase(
+        humanReadableMessageType
+      );
+    });
   }
 
   // Rewrite the previous helmet instance so it's less restrictive
@@ -98,19 +119,25 @@ module.exports = function ({ formats, webserver, config }) {
           Joined: null,
           Roles: null,
         };
+        const messageTypes = new Set();
+
         let ageRegex = /(?:account age[\s]*)(?:\*\*)(?<age>.+?)(?:\*\*)/gi;
-        let nicknameRegex = /(?:nickname[\s]*)(?:\*\*)(?<nickname>.+?)(?:\*\*)/gi;
+        let nicknameRegex =
+          /(?:nickname[\s]*)(?:\*\*)(?<nickname>.+?)(?:\*\*)/gi;
         let joinedRegex = /(?:joined[\s]*)(?:\*\*)(?<joined>.+?)(?:\*\*)/gi;
         let rolesRegex = /(?:roles[\s]*)(?:\*\*)(?<roles>.+?)(?:\*\*)/gi;
 
         // Logic borrowed from https://github.com/Dragory/modmailbot/blob/ab501871ec569cc679c47bc1c82128c16864dfcf/src/formatters.js#L213-L306
         let messages = threadMessages.map((message) => {
+          messageTypes.add(messageTypeMapping[message.message_type]);
+
           if (message.message_type === THREAD_MESSAGE_TYPE.LEGACY) {
             return {
               content: message.body,
               header: "[LEGACY]",
               colour: COLOUR_MAPPINGS[message.message_type],
               type: message.message_type,
+              type_mapping: messageTypeMapping[message.message_type],
             };
           }
           let payload = {
@@ -224,6 +251,7 @@ module.exports = function ({ formats, webserver, config }) {
 
           payload.content = sanitize(payload.content);
           payload.content = converter.makeHtml(payload.content);
+          payload.type_mapping = messageTypeMapping[message.message_type];
 
           return payload;
         });
@@ -238,6 +266,7 @@ module.exports = function ({ formats, webserver, config }) {
           });
         }
         data.messages = messages;
+        data.messageTypes = [...messageTypes];
         data.metadata = {};
 
         for (const [key, value] of Object.entries(metadata)) {
