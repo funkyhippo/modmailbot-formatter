@@ -37,6 +37,13 @@
         }
       }
     </style>
+    <script>
+      function imageErrorHandler(element, text) {
+        const span = document.createElement("span");
+        span.textContent = text;
+        element.replaceWith(span);
+      }
+    </script>
   </head>
   <body>
     <section class="section">
@@ -84,7 +91,10 @@
               <%- message.content.replace(/\n/g, "<br>") %>
               <% if (message.attachments.length) { %>
                 <% message.attachments.forEach((attachment, i) => { %>
-                  <br><a href="<%- attachment %>">Attachment <%= i + 1 %></a>
+                  <br>
+                  <a href="<%- attachment %>">
+                    <img src="<%- attachment %>" onerror="imageErrorHandler(this, 'Attachment <%= i + 1 %>')" />
+                  </a>
                 <% }); %>
               <% } %>
             </div>
