@@ -90,12 +90,13 @@ module.exports = function ({ formats, webserver, config }) {
       contentSecurityPolicy: false,
     })
   );
-  let helmetMiddleware = webserver._router.stack.pop();
-  let oldHelmetIndex = webserver._router.stack.findIndex(
+  const router = webserver.router ?? webserver._router;
+  let helmetMiddleware = router.stack.pop();
+  let oldHelmetIndex = router.stack.findIndex(
     (e) => e.name === helmetMiddleware.name
   );
   if (oldHelmetIndex !== -1) {
-    webserver._router.stack[oldHelmetIndex] = helmetMiddleware;
+    router.stack[oldHelmetIndex] = helmetMiddleware;
   }
 
   formats.setLogFormatter((thread, threadMessages, opts = {}) => {
